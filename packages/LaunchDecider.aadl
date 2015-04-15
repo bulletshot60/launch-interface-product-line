@@ -1,0 +1,128 @@
+package LaunchDecider
+public
+	with Base_Types;
+	
+	thread launch_decider_thread
+		features
+			left_device_1_is_enabled: in data port Base_Types::Boolean;
+			left_device_1_was_enabled_at: in data port Base_Types::Integer;
+			left_device_2_is_enabled: in data port Base_Types::Boolean;
+			left_device_2_was_enabled_at: in data port Base_Types::Integer;
+			right_device_1_is_enabled: in data port Base_Types::Boolean;
+			right_device_1_was_enabled_at: in data port Base_Types::Integer;
+			right_device_2_is_enabled: in data port Base_Types::Boolean;
+			right_device_2_was_enabled_at: in data port Base_Types::Integer;
+			launch: out data port Base_Types::Boolean;
+		properties
+			Dispatch_Protocol => Sporadic;
+			Compute_Execution_Time => 1ms..500ms;
+		annex agree {**
+			assume "is enabled is either true or false and time in between 0 and 86400": (left_device_1_is_enabled = true or left_device_1_is_enabled = false and left_device_2_is_enabled = true or left_device_2_is_enabled = false and right_device_1_is_enabled = true or right_device_1_is_enabled = false and right_device_2_is_enabled = true or right_device_2_is_enabled = false) and (left_device_1_was_enabled_at >= 0 and left_device_1_was_enabled_at <= 86400 and left_device_2_was_enabled_at >= 0 and left_device_2_was_enabled_at <= 86400 and right_device_1_was_enabled_at >= 0 and right_device_1_was_enabled_at <= 86400 and right_device_2_was_enabled_at >= 0 and right_device_2_was_enabled_at <= 86400);
+			guarantee "launch either true or false": launch = true or launch = false;
+		**};
+	end launch_decider_thread;
+	
+	thread simple_activation_launch_decider_thread extends launch_decider_thread
+		annex agree {**
+			guarantee "will launch only if both sides are active": (launch = true and left_device_1_is_enabled and left_device_2_is_enabled and right_device_1_is_enabled and right_device_2_is_enabled) or launch = false; 
+		**};
+	end simple_activation_launch_decider_thread;
+	
+	thread implementation simple_activation_launch_decider_thread.impl
+		annex agree {**
+			eq is_launch: bool = (launch = true and left_device_1_is_enabled and left_device_2_is_enabled and right_device_1_is_enabled and right_device_2_is_enabled) or launch = false;
+			assert launch = is_launch;
+		**};
+	end simple_activation_launch_decider_thread.impl;
+	
+	thread within_2_seconds_activation_launch_decider_thread extends launch_decider_thread
+	end within_2_seconds_activation_launch_decider_thread;
+	
+	thread implementation within_2_seconds_activation_launch_decider_thread.impl
+	end within_2_seconds_activation_launch_decider_thread.impl;
+	
+	thread within_1_second_activation_launch_decider_thread extends launch_decider_thread
+	end within_1_second_activation_launch_decider_thread;
+	
+	thread implementation within_1_second_activation_launch_decider_thread.impl
+	end within_1_second_activation_launch_decider_thread.impl;
+	
+	--////////////////////////////////////////////////////////////////
+	--================================================================
+	--\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	
+	process launch_decider_process
+		features
+			left_device_1_is_enabled: in data port Base_Types::Boolean;
+			left_device_1_was_enabled_at: in data port Base_Types::Integer;
+			left_device_2_is_enabled: in data port Base_Types::Boolean;
+			left_device_2_was_enabled_at: in data port Base_Types::Integer;
+			right_device_1_is_enabled: in data port Base_Types::Boolean;
+			right_device_1_was_enabled_at: in data port Base_Types::Integer;
+			right_device_2_is_enabled: in data port Base_Types::Boolean;
+			right_device_2_was_enabled_at: in data port Base_Types::Integer;
+			launch: out data port Base_Types::Boolean;
+		annex agree {**
+			assume "is enabled is either true or false and time in between 0 and 86400": (left_device_1_is_enabled = true or left_device_1_is_enabled = false and left_device_2_is_enabled = true or left_device_2_is_enabled = false and right_device_1_is_enabled = true or right_device_1_is_enabled = false and right_device_2_is_enabled = true or right_device_2_is_enabled = false) and (left_device_1_was_enabled_at >= 0 and left_device_1_was_enabled_at <= 86400 and left_device_2_was_enabled_at >= 0 and left_device_2_was_enabled_at <= 86400 and right_device_1_was_enabled_at >= 0 and right_device_1_was_enabled_at <= 86400 and right_device_2_was_enabled_at >= 0 and right_device_2_was_enabled_at <= 86400);
+			guarantee "launch either true or false": launch = true or launch = false;
+		**};
+	end launch_decider_process;
+	
+	process implementation launch_decider_process.impl
+		subcomponents
+			launch_decider_thread: thread simple_activation_launch_decider_thread.impl;
+		connections
+			param1: port left_device_1_is_enabled->launch_decider_thread.left_device_1_is_enabled;
+			param2: port left_device_1_was_enabled_at->launch_decider_thread.left_device_1_was_enabled_at;
+			param3: port left_device_2_is_enabled->launch_decider_thread.left_device_2_is_enabled;
+			param4: port left_device_2_was_enabled_at->launch_decider_thread.left_device_2_was_enabled_at;
+			param5: port right_device_1_is_enabled->launch_decider_thread.right_device_1_is_enabled;
+			param6: port right_device_1_was_enabled_at->launch_decider_thread.right_device_1_was_enabled_at;
+			param7: port right_device_2_is_enabled->launch_decider_thread.right_device_2_is_enabled;
+			param8: port right_device_2_was_enabled_at->launch_decider_thread.right_device_2_was_enabled_at;
+			output1: port launch_decider_thread.launch->launch;
+		annex agree {**
+			lift launch_decider_thread;
+		**};
+	end launch_decider_process.impl;
+	
+	--////////////////////////////////////////////////////////////////
+	--================================================================
+	--\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	
+	system launch_decider
+		features
+			left_device_1_is_enabled: in data port Base_Types::Boolean;
+			left_device_1_was_enabled_at: in data port Base_Types::Integer;
+			left_device_2_is_enabled: in data port Base_Types::Boolean;
+			left_device_2_was_enabled_at: in data port Base_Types::Integer;
+			right_device_1_is_enabled: in data port Base_Types::Boolean;
+			right_device_1_was_enabled_at: in data port Base_Types::Integer;
+			right_device_2_is_enabled: in data port Base_Types::Boolean;
+			right_device_2_was_enabled_at: in data port Base_Types::Integer;
+			launch: out data port Base_Types::Boolean;
+		annex agree {**
+			assume "is enabled is either true or false and time in between 0 and 86400": (left_device_1_is_enabled = true or left_device_1_is_enabled = false and left_device_2_is_enabled = true or left_device_2_is_enabled = false and right_device_1_is_enabled = true or right_device_1_is_enabled = false and right_device_2_is_enabled = true or right_device_2_is_enabled = false) and (left_device_1_was_enabled_at >= 0 and left_device_1_was_enabled_at <= 86400 and left_device_2_was_enabled_at >= 0 and left_device_2_was_enabled_at <= 86400 and right_device_1_was_enabled_at >= 0 and right_device_1_was_enabled_at <= 86400 and right_device_2_was_enabled_at >= 0 and right_device_2_was_enabled_at <= 86400);
+			guarantee "launch either true or false": launch = true or launch = false;
+		**};
+	end launch_decider;
+	
+	system implementation launch_decider.impl
+		subcomponents
+			launch_decider_process: process launch_decider_process.impl;
+		connections
+			param1: port left_device_1_is_enabled->launch_decider_process.left_device_1_is_enabled;
+			param2: port left_device_1_was_enabled_at->launch_decider_process.left_device_1_was_enabled_at;
+			param3: port left_device_2_is_enabled->launch_decider_process.left_device_2_is_enabled;
+			param4: port left_device_2_was_enabled_at->launch_decider_process.left_device_2_was_enabled_at;
+			param5: port right_device_1_is_enabled->launch_decider_process.right_device_1_is_enabled;
+			param6: port right_device_1_was_enabled_at->launch_decider_process.right_device_1_was_enabled_at;
+			param7: port right_device_2_is_enabled->launch_decider_process.right_device_2_is_enabled;
+			param8: port right_device_2_was_enabled_at->launch_decider_process.right_device_2_was_enabled_at;
+			output1: port launch_decider_process.launch->launch;
+		annex agree {**
+			lift launch_decider_process;
+		**};
+	end launch_decider.impl;
+	
+end LaunchDecider;

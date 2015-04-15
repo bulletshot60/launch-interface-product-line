@@ -1,0 +1,109 @@
+package MissileLaunchInterfaceSystem
+public
+	with EventHandler, TimerSystem, LaunchDecider, Devices, Base_Types;
+
+	processor embedded_cpu
+		properties
+			Scheduling_Protocol => (Static);
+	end embedded_cpu;
+	
+	processor timing_cpu extends embedded_cpu
+		features
+			socket: requires bus access can;
+	end timing_cpu;
+	
+	processor event_cpu extends embedded_cpu
+		features
+			socket: requires bus access can;
+	end event_cpu;
+	
+	processor launch_decider_cpu extends embedded_cpu
+		features
+			socket: requires bus access can;
+	end launch_decider_cpu;
+	
+	--////////////////////////////////////////////////////////////////
+	--================================================================
+	--\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	
+	bus can
+	end can;
+
+	--////////////////////////////////////////////////////////////////
+	--================================================================
+	--\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	
+	system missile_launch_interface
+		features
+			launch_missile: out data port Base_Types::Boolean;
+		annex agree {**
+			guarantee "output will be true or false": launch_missile = true or launch_missile = false;
+		**};
+	end missile_launch_interface;
+	
+	system implementation missile_launch_interface.impl
+		subcomponents
+			timer_handler: system TimerSystem::external_timer.impl;
+			left_device_1_event_handler: system EventHandler::event_handler;
+			left_device_2_event_handler: system EventHandler::event_handler;
+			right_device_1_event_handler: system EventHandler::event_handler;
+			right_device_2_event_handler: system EventHandler::event_handler;
+			launch_decider: system LaunchDecider::launch_decider.impl;
+			left_device_1: system Devices::push_button.impl;
+			left_device_2: system Devices::push_button.impl;
+			right_device_1: system Devices::push_button.impl;
+			right_device_2: system Devices::push_button.impl;
+			timer: system Devices::timer.impl;
+			
+			timing_cpu: processor timing_cpu;
+			event_cpu: processor event_cpu;
+			launch_decider_cpu: processor launch_decider_cpu; 
+			
+			can_bus: bus can; 
+		connections
+			event1: port timer.fire->timer_handler.time_interrupt;
+			event2: port left_device_1.value->left_device_1_event_handler.value;
+			event3: port left_device_2.value->left_device_2_event_handler.value;
+			event4: port right_device_1.value->right_device_1_event_handler.value;
+			event5: port right_device_2.value->right_device_2_event_handler.value;
+			connection1: port timer_handler.time_out_left_device_1->left_device_1_event_handler.time_in;
+			connection2: port timer_handler.time_out_left_device_2->left_device_2_event_handler.time_in;
+			connection3: port timer_handler.time_out_right_device_1->right_device_1_event_handler.time_in;
+			connection4: port timer_handler.time_out_right_device_2->right_device_2_event_handler.time_in;
+			connection5: port left_device_1_event_handler.is_enabled->launch_decider.left_device_1_is_enabled;
+			connection6: port left_device_1_event_handler.was_enabled_at->launch_decider.left_device_1_was_enabled_at;
+			connection7: port left_device_2_event_handler.is_enabled->launch_decider.left_device_2_is_enabled;
+			connection8: port left_device_2_event_handler.was_enabled_at->launch_decider.left_device_2_was_enabled_at;
+			connection9: port right_device_1_event_handler.is_enabled->launch_decider.right_device_1_is_enabled;
+			connection10: port right_device_1_event_handler.was_enabled_at->launch_decider.right_device_1_was_enabled_at;
+			connection11: port right_device_2_event_handler.is_enabled->launch_decider.right_device_2_is_enabled;
+			connection12: port right_device_2_event_handler.was_enabled_at->launch_decider.right_device_2_was_enabled_at;
+			output1: port launch_decider.launch->launch_missile;
+			
+			timing_connection: bus access timing_cpu.socket <-> can_bus;
+			event_cpu_connection: bus access event_cpu.socket <-> can_bus;
+			launch_decider_connection: bus access launch_decider_cpu.socket <-> can_bus;
+		properties
+			Actual_Processor_Binding => (reference (timing_cpu)) applies to timer_handler; 
+			Actual_Processor_Binding => (reference (event_cpu)) applies to left_device_1_event_handler, left_device_2_event_handler, right_device_1_event_handler, right_device_2_event_handler;
+			Actual_Processor_Binding => (reference (launch_decider_cpu)) applies to launch_decider;
+			
+			Actual_Connection_Binding => (reference (can_bus)) applies to event1, event2, event3, event4, event5;
+			Actual_Connection_Binding => (reference (can_bus)) applies to connection1, connection2, connection3, connection4, connection5, connection6, connection7, connection8, connection9;
+			Actual_Connection_Binding => (reference (can_bus)) applies to output1;
+		annex agree {**
+			lift timer_handler;
+			lift left_device_1_event_handler;
+			lift left_device_2_event_handler;
+			lift right_device_1_event_handler;
+			lift right_device_2_event_handler;
+			lift launch_decider;
+			lift left_device_1;
+			lift left_device_2;
+			lift right_device_1;
+			lift right_device_2;
+			lift timer;
+		**};
+	end missile_launch_interface.impl;
+	
+end MissileLaunchInterfaceSystem;

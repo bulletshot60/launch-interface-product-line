@@ -1,0 +1,101 @@
+package TimerSystem
+public
+	with Base_Types;
+
+	thread clock_thread
+		features
+			time_interrupt: in event port;
+			time_out_left_device_1: out event data port Base_Types::Integer;
+			time_out_left_device_2: out event data port Base_Types::Integer;
+			time_out_right_device_1: out event data port Base_Types::Integer;
+			time_out_right_device_2: out event data port Base_Types::Integer;
+		flows
+			flow1: flow path time_interrupt -> time_out_left_device_1;
+		properties
+			Dispatch_Protocol => Sporadic;
+			Compute_Execution_Time => 0ms..1ms;
+		annex agree {**
+			guarantee "time out left device 1 between 0 and 86400": time_out_left_device_1 >= 0 and time_out_left_device_1 <= 86400;
+			guarantee "time out left device 2 between 0 and 86400": time_out_left_device_2 >= 0 and time_out_left_device_2 <= 86400;
+			guarantee "time out right device 1 between 0 and 86400": time_out_right_device_1 >= 0 and time_out_right_device_1 <= 86400;
+			guarantee "time out right device 2 between 0 and 86400": time_out_right_device_2 >= 0 and time_out_right_device_2 <= 86400;
+		**};
+	end clock_thread;
+	
+	thread implementation clock_thread.impl
+		annex agree {**
+			eq counter: int = prev(if(counter < 86400) then counter + 1 else 0, 0);
+			assert time_out_left_device_1 = counter;
+			assert time_out_left_device_2 = counter;
+			assert time_out_right_device_1 = counter;
+			assert time_out_right_device_2 = counter;
+		**};
+	end clock_thread.impl;
+	
+	--////////////////////////////////////////////////////////////////
+	--================================================================
+	--\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	
+	process clock_process
+		features
+			time_interrupt: in event port;
+			time_out_left_device_1: out event data port Base_Types::Integer;
+			time_out_left_device_2: out event data port Base_Types::Integer;
+			time_out_right_device_1: out event data port Base_Types::Integer;
+			time_out_right_device_2: out event data port Base_Types::Integer;
+		annex agree {**
+			guarantee "time out left device 1 between 0 and 86400": time_out_left_device_1 >= 0 and time_out_left_device_1 <= 86400;
+			guarantee "time out left device 2 between 0 and 86400": time_out_left_device_2 >= 0 and time_out_left_device_2 <= 86400;
+			guarantee "time out right device 1 between 0 and 86400": time_out_right_device_1 >= 0 and time_out_right_device_1 <= 86400;
+			guarantee "time out right device 2 between 0 and 86400": time_out_right_device_2 >= 0 and time_out_right_device_2 <= 86400;
+		**};
+	end clock_process;
+	
+	process implementation clock_process.impl
+		subcomponents
+			clock_thread: thread clock_thread.impl;
+		connections
+			event1: port time_interrupt->clock_thread.time_interrupt;
+			output1: port clock_thread.time_out_left_device_1->time_out_left_device_1;
+			output2: port clock_thread.time_out_left_device_2->time_out_left_device_2;
+			output3: port clock_thread.time_out_right_device_1->time_out_right_device_1;
+			output4: port clock_thread.time_out_right_device_2->time_out_right_device_2;
+		annex agree {**
+			lift clock_thread;
+		**};
+	end clock_process.impl;
+	
+	--////////////////////////////////////////////////////////////////
+	--================================================================
+	--\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	
+	system external_timer
+		features
+			time_interrupt: in event port;
+			time_out_left_device_1: out event data port Base_Types::Integer;
+			time_out_left_device_2: out event data port Base_Types::Integer;
+			time_out_right_device_1: out event data port Base_Types::Integer;
+			time_out_right_device_2: out event data port Base_Types::Integer;
+		annex agree {**
+			guarantee "time out left device 1 between 0 and 86400": time_out_left_device_1 >= 0 and time_out_left_device_1 <= 86400;
+			guarantee "time out left device 2 between 0 and 86400": time_out_left_device_2 >= 0 and time_out_left_device_2 <= 86400;
+			guarantee "time out right device 1 between 0 and 86400": time_out_right_device_1 >= 0 and time_out_right_device_1 <= 86400;
+			guarantee "time out right device 2 between 0 and 86400": time_out_right_device_2 >= 0 and time_out_right_device_2 <= 86400;
+		**};
+	end external_timer;
+	
+	system implementation external_timer.impl
+		subcomponents
+			clock_process: process clock_process.impl;
+		connections
+			event1: port time_interrupt->clock_process.time_interrupt;
+			output1: port clock_process.time_out_left_device_1->time_out_left_device_1;
+			output2: port clock_process.time_out_left_device_2->time_out_left_device_2;
+			output3: port clock_process.time_out_right_device_1->time_out_right_device_1;
+			output4: port clock_process.time_out_right_device_2->time_out_right_device_2;
+		annex agree {**
+			lift clock_process;
+		**};
+	end external_timer.impl;
+	
+end TimerSystem;

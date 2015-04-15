@@ -49,11 +49,11 @@ public
 			right_device_1_event_handler: system EventHandler::event_handler;
 			right_device_2_event_handler: system EventHandler::event_handler;
 			launch_decider: system LaunchDecider::launch_decider.impl;
-			left_device_1: system Devices::push_button.impl;
-			left_device_2: system Devices::push_button.impl;
-			right_device_1: system Devices::push_button.impl;
-			right_device_2: system Devices::push_button.impl;
-			timer: system Devices::timer.impl;
+			left_device_1: device Devices::push_button.impl;
+			left_device_2: device Devices::push_button.impl;
+			right_device_1: device Devices::push_button.impl;
+			right_device_2: device Devices::push_button.impl;
+			timer: device Devices::timer.impl;
 			
 			timing_cpu: processor timing_cpu;
 			event_cpu: processor event_cpu;
@@ -103,6 +103,9 @@ public
 			lift right_device_1;
 			lift right_device_2;
 			lift timer;
+		**};
+		annex Resolute {**
+			prove(Req1(this))
 		**};
 	end missile_launch_interface.impl;
 	

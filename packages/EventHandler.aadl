@@ -97,7 +97,7 @@ public
 	
 	process implementation push_button_input_interface_process.impl
 		subcomponents
-			interface_thread: thread push_button_input_interface_thread;
+			interface_thread: thread push_button_input_interface_thread.impl;
 		connections
 			input1: port value->interface_thread.value;
 			input3: port time_in->interface_thread.time_in;

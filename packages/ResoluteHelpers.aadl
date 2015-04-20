@@ -1,26 +1,36 @@
 package ResoluteHelpers
 public
+	with Devices, EventHandler;
 
 	annex Resolute {**
-		Req1(self : component) <= **"all threads have period"**
-			let threads: {component} = collect_threads({self});
-			forall(t : threads) .
-				thread_has_period(t)
-				
-		thread_has_period(t : component) <= **"thread " t " has period"**
-			has_property(t, Thread_Properties::Dispatch_Protocol)
-			
-		collect_threads(self : {component}) : {component} =
-			{t for (c : self) (t : collect_thread(c))}
-		
-		collect_thread(self : component) : {component} =
-			if self instanceof thread then
-				union({self}, collect_threads(subcomponents(self)))
+		Req1(self: component) <= **"type of self is " self**
+			let x : {component} = reachable(self);
+			if (type(self) = Devices::push_button.impl) then
+				exists(d_1 : x) .
+					type(d_1) = EventHandler::push_button_input_interface_thread.impl
 			else
-				collect_threads(subcomponents(self))
+				if (type(self) = Devices::toggle.impl) then
+					exists(d_2 : x) .
+						type(d_2) = EventHandler::toggle_input_interface_thread.impl
+				else
+					if (type(self) = Devices::key_switch.impl) then
+						exists(d_3 : x) .
+							type(d_3) = EventHandler::key_switch_input_interface_thread.impl
+					else
+						false
+			
+		connected_to(a : {component}) <= **a**
+			false
+				
+		reachable(self: component) : {component} = 
+			{y for (z : connections(self)) (y : get_destination_component(self, z))}
+			
+		get_destination_component(self: component, c: connection) : {component} = 
+			if source_component(c) = self and is_port_connection(c) then
+				union({destination_component(c)}, reachable(destination_component(c)))
+			else 
+				{}
 		
-		thread_is_connected_to_device(a: component, b: {component}) <= **""**
-			true
 	**};
 	
 end ResoluteHelpers;

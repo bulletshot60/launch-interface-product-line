@@ -36,16 +36,30 @@ public
 	end simple_activation_launch_decider_thread.impl;
 	
 	thread within_2_seconds_activation_launch_decider_thread extends launch_decider_thread
+		annex agree {**
+			assume "time greater than 0": left_device_1_was_enabled_at >= 0 and left_device_2_was_enabled_at >= 0 and right_device_1_was_enabled_at >= 0 and right_device_2_was_enabled_at >= 0;
+				
+			guarantee "launch will not occur if either button is not active": launch = false or (launch = true and left_device_2_is_enabled = true and right_device_2_is_enabled = true);
+			guarantee "launch will not occur if either toggle is not active": launch = false or (launch = true and left_device_1_is_enabled = true and right_device_1_is_enabled = true);
+			guarantee "launch will not occur if left_toggle and button not active within two seconds": launch = false or (left_device_2_was_enabled_at > left_device_1_was_enabled_at) and left_device_2_is_enabled and left_device_1_is_enabled and (0 <= (left_device_2_was_enabled_at - left_device_1_was_enabled_at) and (left_device_2_was_enabled_at - left_device_1_was_enabled_at) <= 2);
+			guarantee "launch will not occur if right_toggle and button not active within two seconds": launch = false or (right_device_2_was_enabled_at > right_device_1_was_enabled_at) and right_device_2_is_enabled and right_device_1_is_enabled and (0 <= (right_device_2_was_enabled_at - right_device_1_was_enabled_at) and (right_device_2_was_enabled_at - right_device_1_was_enabled_at) <= 2);
+			guarantee "launch will not occur if two sides not activated in time limit": launch = false or (0 <= (left_device_2_was_enabled_at - right_device_2_was_enabled_at) and (left_device_2_was_enabled_at - right_device_2_was_enabled_at) <= 2) or (0 <= (right_device_2_was_enabled_at - left_device_2_was_enabled_at) and (right_device_2_was_enabled_at - left_device_2_was_enabled_at) <= 2);
+		**};
 	end within_2_seconds_activation_launch_decider_thread;
 	
 	thread implementation within_2_seconds_activation_launch_decider_thread.impl
+		annex agree {**
+			fun abs(x: int) : int = if x < 0 then x * -1 else x;
+			
+			eq leftDevice1TriggeredFirst: bool = left_device_1_was_enabled_at < left_device_2_was_enabled_at;
+			eq rightDevice1TriggeredFirst: bool = right_device_1_was_enabled_at < right_device_2_was_enabled_at;
+			eq leftEnabled: bool = left_device_1_is_enabled and left_device_2_is_enabled and leftDevice1TriggeredFirst and (left_device_2_was_enabled_at - left_device_1_was_enabled_at) <= 2;
+			eq rightEnabled: bool = right_device_1_is_enabled and right_device_2_is_enabled and rightDevice1TriggeredFirst and (right_device_2_was_enabled_at - right_device_1_was_enabled_at) <= 2;
+			eq enabled: bool = leftEnabled and rightEnabled and abs(right_device_2_was_enabled_at - left_device_2_was_enabled_at) <= 2;
+			
+			assert launch = enabled;
+		**};
 	end within_2_seconds_activation_launch_decider_thread.impl;
-	
-	thread within_1_second_activation_launch_decider_thread extends launch_decider_thread
-	end within_1_second_activation_launch_decider_thread;
-	
-	thread implementation within_1_second_activation_launch_decider_thread.impl
-	end within_1_second_activation_launch_decider_thread.impl;
 	
 	--////////////////////////////////////////////////////////////////
 	--================================================================

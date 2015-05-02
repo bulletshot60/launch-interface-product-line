@@ -12,10 +12,14 @@ public
 			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 1ms..500ms;
 		annex agree {**
-			assume "input value is 0 or 1": 0 <= value and value <= 1;
-			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
-			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
-			guarantee "time out between 0 and 86400": was_enabled_at >= 0 and was_enabled_at <= 86400;
+			assume "input value is 0 or 1": 
+				0 <= value and value <= 1;
+			assume "time in between 0 and 86400": 
+				time_in >= 0 and time_in <= 86400;
+			guarantee "is enabled is either true or false": 
+				is_enabled = true or is_enabled = false;
+			guarantee "time out between 0 and 86400": 
+				was_enabled_at >= 0 and was_enabled_at <= 86400;
 		**};
 	end input_interface_thread;
 	
@@ -28,13 +32,8 @@ public
 		**};
 	end input_interface_thread.impl;
 	
-	thread push_button_input_interface_thread extends input_interface_thread
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
-			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
-			guarantee "time out between 0 and 86400": was_enabled_at >= 0 and was_enabled_at <= 86400;
-		**};
+	thread push_button_input_interface_thread 
+		extends input_interface_thread
 	end push_button_input_interface_thread;
 	
 	thread implementation push_button_input_interface_thread.impl
@@ -47,12 +46,6 @@ public
 	end push_button_input_interface_thread.impl;
 	
 	thread toggle_input_interface_thread extends input_interface_thread
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-			assume "input value is 0 or 1": 0 <= value and value <= 1;
-			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
-			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
-		**};
 	end toggle_input_interface_thread;
 	
 	thread implementation toggle_input_interface_thread.impl
@@ -65,12 +58,6 @@ public
 	end toggle_input_interface_thread.impl;
 	
 	thread key_switch_input_interface_thread extends input_interface_thread
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-			assume "input value is 0 or 1": 0 <= value and value <= 1;
-			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
-			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
-		**};
 	end key_switch_input_interface_thread;
 	
 	thread implementation key_switch_input_interface_thread.impl

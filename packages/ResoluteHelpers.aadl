@@ -19,9 +19,6 @@ public
 					else
 						false
 			
-		connected_to(a : {component}) <= **a**
-			false
-				
 		reachable(self: component) : {component} = 
 			{y for (z : connections(self)) (y : get_destination_component(self, z))}
 			

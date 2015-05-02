@@ -12,6 +12,7 @@ public
 			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 1ms..500ms;
 		annex agree {**
+			assume "input value is 0 or 1": 0 <= value and value <= 1;
 			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
 			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
 			guarantee "time out between 0 and 86400": was_enabled_at >= 0 and was_enabled_at <= 86400;
@@ -30,6 +31,9 @@ public
 	thread push_button_input_interface_thread extends input_interface_thread
 		annex agree {**
 			assume "value is either 0 or 1": value = 0 or value = 1;
+			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
+			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
+			guarantee "time out between 0 and 86400": was_enabled_at >= 0 and was_enabled_at <= 86400;
 		**};
 	end push_button_input_interface_thread;
 	
@@ -45,6 +49,9 @@ public
 	thread toggle_input_interface_thread extends input_interface_thread
 		annex agree {**
 			assume "value is either 0 or 1": value = 0 or value = 1;
+			assume "input value is 0 or 1": 0 <= value and value <= 1;
+			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
+			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
 		**};
 	end toggle_input_interface_thread;
 	
@@ -59,13 +66,16 @@ public
 	
 	thread key_switch_input_interface_thread extends input_interface_thread
 		annex agree {**
-			assume "value is between 0 and 100": value <= 0 or value <= 100;
+			assume "value is either 0 or 1": value = 0 or value = 1;
+			assume "input value is 0 or 1": 0 <= value and value <= 1;
+			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
+			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
 		**};
 	end key_switch_input_interface_thread;
 	
 	thread implementation key_switch_input_interface_thread.impl
 		annex agree {**
-			eq enabled: bool = (value >= 70);
+			eq enabled: bool = (value = 0);
 			eq time_out: int = if(enabled) then time_in else 0;
 			assert is_enabled = enabled;
 			assert was_enabled_at = time_out;
@@ -83,16 +93,24 @@ public
 			is_enabled: out data port Base_Types::Boolean;
 			was_enabled_at: out data port Base_Types::Integer;
 		annex agree {**
+			assume "input value is 0 or 1": 0 <= value and value <= 1;
 			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
 			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
 			guarantee "time out between 0 and 86400": was_enabled_at >= 0 and was_enabled_at <= 86400;
 		**};
 	end input_interface_process;
 	
+	process implementation input_interface_process.impl
+		subcomponents
+			interface_thread: thread input_interface_thread.impl;
+		connections
+			input1: port value->interface_thread.value;
+			input3: port time_in->interface_thread.time_in;
+			output1: port interface_thread.is_enabled->is_enabled;
+			output2: port interface_thread.was_enabled_at->was_enabled_at;
+	end input_interface_process.impl;
+	
 	process push_button_input_interface_process extends input_interface_process
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-		**};
 	end push_button_input_interface_process;
 	
 	process implementation push_button_input_interface_process.impl
@@ -103,15 +121,9 @@ public
 			input3: port time_in->interface_thread.time_in;
 			output1: port interface_thread.is_enabled->is_enabled;
 			output2: port interface_thread.was_enabled_at->was_enabled_at;
-		annex agree {**
-			lift interface_thread;
-		**};
 	end push_button_input_interface_process.impl;
 	
 	process toggle_input_interface_process extends input_interface_process
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-		**};
 	end toggle_input_interface_process;
 	
 	process implementation toggle_input_interface_process.impl
@@ -122,15 +134,9 @@ public
 			input3: port time_in->interface_thread.time_in;
 			output1: port interface_thread.is_enabled->is_enabled;
 			output2: port interface_thread.was_enabled_at->was_enabled_at;
-		annex agree {**
-			lift interface_thread;
-		**};
 	end toggle_input_interface_process.impl;
 	
 	process key_switch_input_interface_process extends input_interface_process
-		annex agree {**
-			assume "value is between 0 and 100": value <= 0 or value <= 100;
-		**};
 	end key_switch_input_interface_process;
 	
 	process implementation key_switch_input_interface_process.impl
@@ -141,9 +147,6 @@ public
 			input3: port time_in->interface_thread.time_in;
 			output1: port interface_thread.is_enabled->is_enabled;
 			output2: port interface_thread.was_enabled_at->was_enabled_at;
-		annex agree {**
-			lift interface_thread;
-		**};
 	end key_switch_input_interface_process.impl;
 	
 	--////////////////////////////////////////////////////////////////
@@ -157,16 +160,24 @@ public
 			is_enabled: out data port Base_Types::Boolean;
 			was_enabled_at: out data port Base_Types::Integer;
 		annex agree {**
+			assume "input value is 0 or 1": 0 <= value and value <= 1;
 			assume "time in between 0 and 86400": time_in >= 0 and time_in <= 86400;
 			guarantee "is enabled is either true or false": is_enabled = true or is_enabled = false;
 			guarantee "time out between 0 and 86400": was_enabled_at >= 0 and was_enabled_at <= 86400;
 		**};
 	end event_handler;
 	
+	system implementation event_handler.impl
+		subcomponents
+			interface_process: process push_button_input_interface_process.impl;
+		connections
+			input1: port value->interface_process.value;
+			input3: port time_in->interface_process.time_in;
+			output1: port interface_process.is_enabled->is_enabled;
+			output2: port interface_process.was_enabled_at->was_enabled_at;
+	end event_handler.impl;
+	
 	system push_button_event_handler extends event_handler
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-		**};
 	end push_button_event_handler;
 	
 	system implementation push_button_event_handler.impl
@@ -177,15 +188,9 @@ public
 			input3: port time_in->interface_process.time_in;
 			output1: port interface_process.is_enabled->is_enabled;
 			output2: port interface_process.was_enabled_at->was_enabled_at;
-		annex agree {**
-			lift interface_process;
-		**};
 	end push_button_event_handler.impl;
 	
 	system toggle_event_handler extends event_handler
-		annex agree {**
-			assume "value is either 0 or 1": value = 0 or value = 1;
-		**};
 	end toggle_event_handler;
 	
 	system implementation toggle_event_handler.impl
@@ -196,15 +201,9 @@ public
 			input3: port time_in->interface_process.time_in;
 			output1: port interface_process.is_enabled->is_enabled;
 			output2: port interface_process.was_enabled_at->was_enabled_at;
-		annex agree {**
-			lift interface_process;
-		**};
 	end toggle_event_handler.impl;
 	
 	system key_switch_event_handler extends event_handler
-		annex agree {**
-			assume "value is between 0 and 100": value <= 0 or value <= 100;
-		**};
 	end key_switch_event_handler;
 	
 	system implementation key_switch_event_handler.impl
@@ -215,9 +214,6 @@ public
 			input3: port time_in->interface_process.time_in;
 			output1: port interface_process.is_enabled->is_enabled;
 			output2: port interface_process.was_enabled_at->was_enabled_at;
-		annex agree {**
-			lift interface_process;
-		**};
 	end key_switch_event_handler.impl;
 	
 end EventHandler;
